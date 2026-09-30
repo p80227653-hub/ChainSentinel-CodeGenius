@@ -5,8 +5,8 @@
 ---
 
 ### 🚀 Quick Links
-- **Live Demo Environment:** `[Yahan Apna Live Demo Link Daal]`
-- **90-Second Pitch Video:** `[Yahan Apna YouTube Link Daal]`
+- **Live Demo Environment:** `[https://chain-sentinel-demo-five.vercel.app/]`
+- **90-Second Pitch Video:** `[https://youtube.com/playlist?list=PLP7P7qwHHv4s&si=AqvL27T8mLIx6JHX]`
 
 ---
 
