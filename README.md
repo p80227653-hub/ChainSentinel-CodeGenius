@@ -93,12 +93,4 @@ flowchart TB
   TRV --> NEO
   API --> PG
 
-💻 Tech Stack
-Backend: Python 3.12, FastAPI, Celery, Redis
-Data & Graph: PostgreSQL, Neo4j, NetworkX
-Intelligence: Heuristics (H1-H7), Logistic Regression (Scikit-learn)
-Frontend: React 18, Tailwind CSS, react-force-graph
-Infrastructure: Docker Compose, GitHub Actions
-⚠️ Disclaimer
-Attribution = investigative lead, not proof of ownership.
-This engine provides high-confidence probabilities and ranked leads to empower state cyber police and investigators. It does not auto-execute legal actions or freeze funds without manual verification.
+
