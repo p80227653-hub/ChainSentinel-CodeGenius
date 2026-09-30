@@ -29,7 +29,7 @@ flowchart TB
     REV["Reviewer"]
   end
 
-  subgraph SAH["SAHYOG Integration (mock adapter, not the live portal)"]
+  subgraph SAH["SAHYOG Integration"]
     SIN["Case and wallet intake"]
     SDR["Draft notice service"]
     SRS["VASP reply capture"]
@@ -45,7 +45,7 @@ flowchart TB
     API["Attribution API - FastAPI"]
     CASE["Case and Workflow Service"]
     WORK["Celery Workers"]
-    REDIS[("Redis queue and cache")]
+    REDIS["Redis queue and cache"]
   end
 
   subgraph CORE["Intelligence Core"]
@@ -59,22 +59,9 @@ flowchart TB
   end
 
   subgraph DATA["Data Layer"]
-    PG[("PostgreSQL: labels, VASP directory, cases, audit")]
-    NEO[("Neo4j: investigation graph")]
-    EVI[("Evidence store: SHA-256 sealed")]
-  end
-
-  subgraph ADP["Chain Adapters"]
-    BTC["Bitcoin"]
-    EVM["EVM: ETH, BNB, Polygon"]
-    TRX["Tron: USDT TRC-20"]
-    SOL["Solana"]
-    DEMO["Demo fixture provider"]
-  end
-
-  subgraph SRC["Chain Data Sources"]
-    PUB["Public APIs: Esplora, Etherscan V2, TronGrid, Solana RPC"]
-    SELF["Self-hosted nodes and indexers (sovereign mode)"]
+    PG["PostgreSQL: labels, VASP directory, cases"]
+    NEO["Neo4j: investigation graph"]
+    EVI["Evidence store: SHA-256 sealed"]
   end
 
   INV --> DASH
@@ -85,8 +72,8 @@ flowchart TB
 
   SIN --> CASE
   CASE --> SDR
-  SDR -->|"reviewer-approved request"| SRS
-  SRS -->|"VASP confirms: label upgraded to L5"| PG
+  SDR --> SRS
+  SRS --> PG
 
   API --> CASE
   API --> REDIS
@@ -102,65 +89,6 @@ flowchart TB
   RISK --> EXP
   EXP --> EVI
 
-  TRV --> BTC
-  TRV --> EVM
-  TRV --> TRX
-  TRV --> SOL
-  TRV --> DEMO
-  BTC --> PUB
-  EVM --> PUB
-  TRX --> PUB
-  SOL --> PUB
-  BTC -.-> SELF
-  TRX -.-> SELF
-
   HEU --> NEO
   TRV --> NEO
   API --> PG
-
-  classDef suspect fill:#7f1d1d,stroke:#ef4444,color:#fff
-  classDef core fill:#312e81,stroke:#a78bfa,color:#fff
-  classDef data fill:#78350f,stroke:#f59e0b,color:#fff
-  class TRV,HEU,SWP,PEEL,SCO,EXP,RISK core
-  class PG,NEO,EVI data
-
-
-⚙️ Attribution Decision Logic
-flowchart TD
-  A["Suspect wallet from SAHYOG case"] --> B["Detect chain(s) and fetch transfers"]
-  B --> C{"Address labelled as VASP hot or deposit wallet?"}
-  C -->|"Yes"| H["Terminal hit: candidate VASP"]
-  C -->|"No"| D{"Single-use address that sweeps into a labelled hot wallet within window?"}
-  D -->|"Yes"| E["Deposit-sweep inference: attribute to that VASP"]
-  D -->|"No"| F{"Pass-through hub, mixer or bridge?"}
-  F -->|"Pass-through hub or DEX router"| G["Continue trace through hub"]
-  F -->|"CoinJoin or mixer"| M["Breakpoint: stop, low-confidence post-mix leads only"]
-  F -->|"Bridge or swapper"| N["Continuation edge on other chain, confidence penalty"]
-  F -->|"None"| I["Expand outflows: haircut flow share, drop dust"]
-  G --> I
-  N --> I
-  I --> J{"Hop limit or min-share reached?"}
-  J -->|"No"| C
-  J -->|"Yes"| K["NO_ATTRIBUTION or UNKNOWN_CUSTODIAL"]
-  H --> S["Score: label level, sweep, gas-funder, flow share, hop penalty, staleness"]
-  E --> S
-  M --> S
-  K --> S
-  S --> T["Calibrated posterior and band: High, Medium, Low"]
-  T --> U["Explain and counterfactual"]
-  U --> V["Hash-sealed report and draft notice"]
-  V --> W{"Human reviewer approves?"}
-  W -->|"Yes"| X["Send via SAHYOG channel"]
-  W -->|"No"| Y["Back to investigator with reasons"]
-
-💻 Tech Stack
-Backend: Python 3.12, FastAPI, Celery, Redis
-Data & Graph: PostgreSQL, Neo4j, NetworkX
-Intelligence: Heuristics (H1-H7), Logistic Regression (Scikit-learn)
-Frontend: React 18, Tailwind CSS, react-force-graph
-Infrastructure: Docker Compose, GitHub Actions
-(Note: SAHYOG integrations are handled via a mock adapter until official API specifications are public).
-
-⚠️ Disclaimer
-Attribution = investigative lead, not proof of ownership.
-This engine provides high-confidence probabilities and ranked leads to empower state cyber police and investigators. It does not auto-execute legal actions or freeze funds without manual verification.
